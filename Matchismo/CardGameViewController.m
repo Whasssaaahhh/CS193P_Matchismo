@@ -12,36 +12,38 @@
 
 @interface CardGameViewController ()
 
+@property (weak, nonatomic) IBOutlet UILabel *suitLabel;
+@property (weak, nonatomic) IBOutlet UILabel *rankLabel;
+
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
 @property (weak, nonatomic) IBOutlet UILabel *numberOfCardsInDeckLabel;
 @property (nonatomic) int flipCount;
 @property (nonatomic) int cardsInDeckCount;
-@property (nonatomic, strong) PlayingCardDeck *deck;
+
+@property (nonatomic, strong) Deck *deck;
 
 @end
 
 @implementation CardGameViewController
 
-
 - (void)viewDidLoad
 {
-    // no lazy instantiation because we want the deck to be 'ready' when it appears on screen, so that the deck count reflects the correct value
-    self.deck = [[PlayingCardDeck alloc] init];
-    
+    // update the label
     // note : first tried to use 'awakeFromNib', but at that point the label has not yet been created
     self.cardsInDeckCount = self.deck.numberOfCardsInDeck;
 }
 
-//- (PlayingCardDeck *)deck
-//{
-//    // lazy instantiation
-//    if (!_deck)
-//    {
-//        _deck = [[PlayingCardDeck alloc] init];
-//    }
-//    
-//    return _deck;
-//}
+- (Deck *)deck
+{
+    // lazy instantiation
+    if (!_deck)
+    {
+        // note that we alloc/init a PlayingCardDeck, but assign it to a Deck. A PlayingCardDeck 'is a' Deck (but a Deck is not a PlayingCard)
+        _deck = [[PlayingCardDeck alloc] init];
+    }
+    
+    return _deck;
+}
 
 - (void)setFlipCount:(int)flipCount
 {
@@ -80,6 +82,13 @@
         
         // update nbr of cards in deck -> should better be performed by drawRandomCard, so we don't forget this -> use @protocols?
         self.cardsInDeckCount = self.deck.numberOfCardsInDeck;
+        
+        // show the suit & rank of the PlayingCard (if it is a PlayingCard)
+        if ([card isKindOfClass:[PlayingCard class]])
+        {
+            self.suitLabel.text = [NSString stringWithFormat:@"Suit: %@", [(PlayingCard *)card suit]];
+            self.rankLabel.text = [NSString stringWithFormat:@"Rank: %d",[(PlayingCard *)card rank]];
+        }
     }
     
     // toggle button state

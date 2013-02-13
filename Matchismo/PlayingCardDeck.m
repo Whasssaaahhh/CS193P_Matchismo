@@ -17,7 +17,7 @@
     
     if (self)
     {
-        // creat the deck of cards
+        // creat the deck of PlayingCards
         for (NSString *suit in [PlayingCard validSuits])
         {
             for (NSUInteger rank = 1; rank <= [PlayingCard maxRank]; rank++)
