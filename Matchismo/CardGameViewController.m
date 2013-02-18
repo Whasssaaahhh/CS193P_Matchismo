@@ -9,93 +9,128 @@
 #import "CardGameViewController.h"
 #import "PlayingCardDeck.h"
 #import "PlayingCard.h"
+#import "CardMatchingGame.h"
 
 @interface CardGameViewController ()
-
-@property (weak, nonatomic) IBOutlet UILabel *suitLabel;
-@property (weak, nonatomic) IBOutlet UILabel *rankLabel;
+// outlet collection arrays are always strong. While the view will point strongly to the UIButtons 'inside' the array, it will not point to the array itself at all, only the controller will -> the outlet needs to be strongly held in the heap by our controller
+// note : remember that an NSArray points strongly to all the elements it contains, and also that each element can be of any kind
+@property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
 
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
-@property (weak, nonatomic) IBOutlet UILabel *numberOfCardsInDeckLabel;
 @property (nonatomic) int flipCount;
-@property (nonatomic) int cardsInDeckCount;
 
-@property (nonatomic, strong) Deck *deck;
+@property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
+
+// note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
+// we aren't going to send any messages to self.deck that aren't understood by the base 'Deck' class. The only message we'll send is 'drawRandomCard', that's not a PlayingCardDeck method, it's a Deck method.
+
+//@property (nonatomic, strong) Deck *deck;
+
+// property for our game model
+@property (nonatomic, strong) CardMatchingGame *game;
 
 @end
 
+#pragma mark - Custom setters & getters
+
 @implementation CardGameViewController
 
-- (void)viewDidLoad
-{
-    // update the label
-    // note : first tried to use 'awakeFromNib', but at that point the label has not yet been created
-    self.cardsInDeckCount = self.deck.numberOfCardsInDeck;
-}
-
-- (Deck *)deck
-{
-    // lazy instantiation
-    if (!_deck)
-    {
-        // note that we alloc/init a PlayingCardDeck, but assign it to a Deck. A PlayingCardDeck 'is a' Deck (but a Deck is not a PlayingCard)
-        _deck = [[PlayingCardDeck alloc] init];
-    }
-    
-    return _deck;
-}
+//- (Deck *)deck
+//{
+//    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+//    
+//    // it's a getter -> lazy instantiation
+//    if (!_deck)
+//    {
+//        // even though our deck @property is of class Deck, we are within our rights to set it to a PlayingCardDeck instance, since PlayingCardDeck inherits from Deck (and thus 'isa' Deck)
+//        _deck = [[PlayingCardDeck alloc] init];
+//    }
+//    
+//    return _deck;
+//}
 
 - (void)setFlipCount:(int)flipCount
 {
-    // it's a setter, so don't forget to set :-)
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
+    // it's a setter -> don't forget to set
     _flipCount = flipCount;
     
     // using the setter to update the flipsLabel
     self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
-    
-    NSLog(@"flips updated to %d", self.flipCount);
 }
 
-- (void)setCardsInDeckCount:(int)cardsInDeckCount
+- (void)setCardButtons:(NSArray *)cardButtons
 {
-    // it's a setter, so don't forget to set
-    _cardsInDeckCount = cardsInDeckCount;
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
     
-    // use the setter to update the label
-    self.numberOfCardsInDeckLabel.text = [NSString stringWithFormat:@"Cards in deck: %d", self.cardsInDeckCount];
+    // this setter get's called when iOS loads the storyboard!
+    
+    // it's a setter -> don't forget to set
+    _cardButtons = cardButtons;
+
+    [self updateUI];
+}
+
+- (CardMatchingGame *)game
+{
+    // getter -> lazy instantiation
+    if (!_game)
+    {
+        // game adjusts automatically to the number of buttons on the screen!
+        _game = [[CardMatchingGame alloc] initWithCardCount:self.cardButtons.count usingDeck:[[PlayingCardDeck alloc] init]];
+    }
+    
+    return _game;
+}
+
+#pragma mark - xxx
+
+- (void)updateUI
+{
+    // updates the user-interface by asking the CardMatchingGame what's going on
+    // we just cycle through the card buttons, getting the associated Card from the CardMatchingGame
+    
+    for (UIButton *cardButton in self.cardButtons)
+    {
+        // get a Card from the model
+        Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:cardButton]];
+        
+        // Set the title in the Selected state to be the Card's contents (if the contents have not changed, this will do nothing)
+        [cardButton setTitle:card.contents forState:UIControlStateSelected];
+        
+        // we set the title when the button is both Selected & Disabled to also be the Card's contents
+        // A button shows it's Normal title whenever it is in a state (or combination of states) for which you have not set a title. Our button's Normal title is the Apple logo (the back of the card)
+        [cardButton setTitle:card.contents forState:UIControlStateSelected | UIControlStateDisabled];
+        
+        // select the card only if it isFaceUp
+        cardButton.selected = card.isFaceUp;
+        
+        // make the card untappable if it isUnPlayable
+        cardButton.enabled = !card.isUnplayable;
+        
+        // make disabled buttons semi-transparent
+        // Any object in your view can be made transparent simply by setting this alpha @property (1.0 is fully opaque, 0.0 is fully transparant)
+        cardButton.alpha = card.isUnplayable ? 0.3 : 1.0;
+    }
+    
+    // update the score
+    self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
+    
 }
 
 - (IBAction)flipCard:(UIButton *)sender
 {
-    // toggle button state between 'default' & 'selected'
-    // 'default' shows the back of the card
-    // 'selected' shows the suit & rank
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
     
-    // HW0 : make each flip draw a new card
-    
-    // alt-click on 'selected' -> you'll see that the getter for this BOOL is called 'isSelected'
-    if (!sender.isSelected)
-    {
-        // get a new random card and update it's title (in the 'selected' state)
-        Card *card = [self.deck drawRandomCard];
-        [sender setTitle:card.contents forState:UIControlStateSelected];
-        
-        // update nbr of cards in deck -> should better be performed by drawRandomCard, so we don't forget this -> use @protocols?
-        self.cardsInDeckCount = self.deck.numberOfCardsInDeck;
-        
-        // show the suit & rank of the PlayingCard (if it is a PlayingCard)
-        if ([card isKindOfClass:[PlayingCard class]])
-        {
-            self.suitLabel.text = [NSString stringWithFormat:@"Suit: %@", [(PlayingCard *)card suit]];
-            self.rankLabel.text = [NSString stringWithFormat:@"Rank: %d",[(PlayingCard *)card rank]];
-        }
-    }
-    
-    // toggle button state
-    sender.selected = !sender.isSelected;
+    // we won't flip cards ourselves anymore, we'll let the CardMatchingGame do it
+    [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
     
     // increment the count each time we flip
     self.flipCount++;
+    
+    // update the UI when a card gets flipped
+    [self updateUI];
 }
 
 

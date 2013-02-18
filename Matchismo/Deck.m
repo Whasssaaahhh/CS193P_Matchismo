@@ -16,14 +16,16 @@
 
 @implementation Deck
 
-- (NSUInteger)numberOfCardsInDeck
-{
-    return [self.cards count];
-}
+//- (NSUInteger)numberOfCardsInDeck
+//{
+//    return [self.cards count];
+//}
 
 
 - (NSMutableArray *)cards
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     // use the getter for lazy instantiation
     if (!_cards)
         _cards = [[NSMutableArray alloc] init];
@@ -33,6 +35,8 @@
 
 - (void)addCard:(Card *)card atTop:(BOOL)atTop
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     if (atTop)
     {
         [self.cards insertObject:card atIndex:0];
@@ -45,6 +49,8 @@
 
 - (Card *)drawRandomCard
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     Card *randomCard = nil;
     
     // check first if array is not empty (would chrash)

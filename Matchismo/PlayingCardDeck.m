@@ -13,6 +13,8 @@
 
 - (id)init
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     self = [super init];
     
     if (self)
