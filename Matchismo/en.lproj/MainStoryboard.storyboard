@@ -26,7 +26,7 @@
                                 </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Flips: 0" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="tcg-tr-CLa">
-                                <rect key="frame" x="20" y="419" width="87" height="21"/>
+                                <rect key="frame" x="20" y="398" width="87" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -175,8 +175,8 @@
                                     <action selector="flipCard:" destination="2" eventType="touchUpInside" id="Slp-Pq-orJ"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Score : 0" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="oqe-5A-N0j">
-                                <rect key="frame" x="200" y="419" width="100" height="21"/>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Score : 0" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="oqe-5A-N0j">
+                                <rect key="frame" x="20" y="419" width="87" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -235,14 +235,14 @@
                                 </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="No cards flipped" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="2IK-0n-iNa">
-                                <rect key="frame" x="20" y="376" width="280" height="21"/>
+                                <rect key="frame" x="20" y="369" width="280" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="KP1-Qn-dZ3">
-                                <rect key="frame" x="128" y="413" width="55" height="34"/>
+                                <rect key="frame" x="137" y="397" width="62" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" title="deal">
@@ -256,11 +256,23 @@
                                     <action selector="startNewGame:" destination="2" eventType="touchUpInside" id="Pbw-Hg-OJt"/>
                                 </connections>
                             </button>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bordered" selectedSegmentIndex="0" id="2Lg-CI-8Py">
+                                <rect key="frame" x="217" y="397" width="83" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <segments>
+                                    <segment title="2m"/>
+                                    <segment title="3m"/>
+                                </segments>
+                                <connections>
+                                    <action selector="gameModeChanged:" destination="2" eventType="valueChanged" id="4xe-ow-99s"/>
+                                </connections>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
                         <outlet property="flipsLabel" destination="tcg-tr-CLa" id="mGy-0R-wT9"/>
+                        <outlet property="gameModeButton" destination="2Lg-CI-8Py" id="ufu-Lg-9cY"/>
                         <outlet property="scoreLabel" destination="oqe-5A-N0j" id="Uz2-hw-CCr"/>
                         <outlet property="statusLabel" destination="2IK-0n-iNa" id="cGz-3h-A01"/>
                         <outletCollection property="cardButtons" destination="dHA-nT-mDx" id="evH-2z-goO"/>
@@ -290,8 +302,10 @@
             <source key="sourceIdentifier" type="project" relativePath="./Classes/CardGameViewController.h"/>
             <relationships>
                 <relationship kind="action" name="flipCard:" candidateClass="UIButton"/>
+                <relationship kind="action" name="gameModeChanged:" candidateClass="UISegmentedControl"/>
                 <relationship kind="action" name="startNewGame:"/>
                 <relationship kind="outlet" name="flipsLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="gameModeButton" candidateClass="UISegmentedControl"/>
                 <relationship kind="outlet" name="scoreLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="statusLabel" candidateClass="UILabel"/>
                 <relationship kind="outletCollection" name="cardButtons" candidateClass="UIButton"/>

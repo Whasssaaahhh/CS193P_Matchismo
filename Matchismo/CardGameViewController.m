@@ -23,6 +23,8 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *statusLabel;
 
+@property (weak, nonatomic) IBOutlet UISegmentedControl *gameModeButton;
+
 // note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
 // we aren't going to send any messages to self.deck that aren't understood by the base 'Deck' class. The only message we'll send is 'drawRandomCard', that's not a PlayingCardDeck method, it's a Deck method.
 
@@ -142,6 +144,10 @@
     // we won't flip cards ourselves anymore, we'll let the CardMatchingGame do it
     [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
     
+    // if flipping starts, disable the segmented control
+    if (self.flipCount == 0)
+        self.gameModeButton.enabled = NO;
+    
     // increment the count each time we flip
     self.flipCount++;
     
@@ -157,8 +163,19 @@
     // very ellegant way to start a new game is to set self.game to nil -> next time the getter of game is called (happens right after this in updateUI) -> a new pack of cards will be generated
     self.game = nil;
     
+    // (re)enable the segmented control
+    self.gameModeButton.enabled = YES;
+    
     // now update the UI - the call to the updateUI will create a new game the first time the getter is called!
-//    [self updateUI];...
+//    [self updateUI]; -> moved to 'setGame' method
+}
+
+- (IBAction)gameModeChanged:(UISegmentedControl *)sender
+{
+    NSLog(@"mode changed %d", sender.selectedSegmentIndex);
+
+    // index 0 == 2 card mode, index 1 == 3 card mode
+    self.game.gameMode3cards = (sender.selectedSegmentIndex == 1) ? YES : NO;
 }
 
 @end
