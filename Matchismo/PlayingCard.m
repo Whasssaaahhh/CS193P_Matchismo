@@ -16,8 +16,6 @@
 
 - (void)setSuit:(NSString *)suit
 {
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-
     // protect setter
     if ([[PlayingCard validSuits] containsObject:suit])
     {
@@ -26,17 +24,13 @@
 }
 
 - (NSString *)suit
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{    
     // if _suit has never been set, return @"?", otherwise return the ivar
     return _suit ? _suit : @"?";
 }
 
 - (void)setRank:(NSUInteger)rank
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{   
     // protect setter 
     if (rank <= [PlayingCard maxRank])
     {
@@ -47,9 +41,7 @@
 #pragma mark - private class methods
 
 + (NSArray *)rankStrings
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{    
     // returns an array with the ranks
     static NSArray *rankStrings = nil;
     
@@ -63,9 +55,7 @@
 #pragma mark - public class methods
 
 + (NSArray *)validSuits
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{    
     // a C static has been used here, doing this is optional
     static NSArray *validSuits = nil;
     
@@ -77,9 +67,7 @@
 }
 
 + (NSUInteger)maxRank
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{    
     return [self rankStrings].count-1;
 }
 
@@ -91,13 +79,9 @@
 
 - (NSString *)contents
 {
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
     // returns a string containing the rank & suit
     return [[PlayingCard rankStrings][self.rank] stringByAppendingString:self.suit];
 }
-
-#pragma mark - overridden superclass methods
 
 // 'Card's matches only if the cards are exactly the same (that is to say, their contents @property values are equal).
 // 'PlayingCard's should match if the 'suit' and/or 'rank' is the same -> override this method here in PlayingCard to do this.
@@ -106,6 +90,8 @@
 
 - (int)match:(NSArray *)otherCards
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     int score = 0;
     
     // only match a single other card (for now -> homework will be different)

@@ -27,6 +27,8 @@
 
 @property (nonatomic,readonly) int score;       // no setter
 
+@property (nonatomic,readonly) NSString *status;
+
 @end
 
 // note that noe of the above code has something to do with UI. It's up to the controller to interpret the Model into something presented to the user via a View

@@ -24,8 +24,6 @@
 
 - (NSMutableArray *)cards
 {
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
     // use the getter for lazy instantiation
     if (!_cards)
         _cards = [[NSMutableArray alloc] init];

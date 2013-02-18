@@ -21,6 +21,8 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
 
+@property (weak, nonatomic) IBOutlet UILabel *statusLabel;
+
 // note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
 // we aren't going to send any messages to self.deck that aren't understood by the base 'Deck' class. The only message we'll send is 'drawRandomCard', that's not a PlayingCardDeck method, it's a Deck method.
 
@@ -49,10 +51,10 @@
 //    return _deck;
 //}
 
+@synthesize game = _game;
+
 - (void)setFlipCount:(int)flipCount
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{   
     // it's a setter -> don't forget to set
     _flipCount = flipCount;
     
@@ -61,9 +63,7 @@
 }
 
 - (void)setCardButtons:(NSArray *)cardButtons
-{
-    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-    
+{    
     // this setter get's called when iOS loads the storyboard!
     
     // it's a setter -> don't forget to set
@@ -73,21 +73,33 @@
 }
 
 - (CardMatchingGame *)game
-{
+{    
     // getter -> lazy instantiation
     if (!_game)
     {
         // game adjusts automatically to the number of buttons on the screen!
         _game = [[CardMatchingGame alloc] initWithCardCount:self.cardButtons.count usingDeck:[[PlayingCardDeck alloc] init]];
+        
+        //[self updateUI];
     }
     
     return _game;
+}
+
+- (void)setGame:(CardMatchingGame *)game
+{
+    NSLog(@"xxx game setter called xxx");
+    _game = game;
+    
+    [self updateUI];
 }
 
 #pragma mark - xxx
 
 - (void)updateUI
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     // updates the user-interface by asking the CardMatchingGame what's going on
     // we just cycle through the card buttons, getting the associated Card from the CardMatchingGame
     
@@ -117,7 +129,11 @@
     // update the score
     self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
     
+    // update the flipsLabel
+    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
 }
+
+#pragma mark - IBAction methods
 
 - (IBAction)flipCard:(UIButton *)sender
 {
@@ -133,5 +149,16 @@
     [self updateUI];
 }
 
+- (IBAction)startNewGame:(id)sender
+{
+    // because flipCount is not part of the model, it will not automatically be cleared (the score does get cleared to zero, because it's part of the model)
+    self.flipCount = 0;
+
+    // very ellegant way to start a new game is to set self.game to nil -> next time the getter of game is called (happens right after this in updateUI) -> a new pack of cards will be generated
+    self.game = nil;
+    
+    // now update the UI - the call to the updateUI will create a new game the first time the getter is called!
+//    [self updateUI];...
+}
 
 @end

@@ -24,7 +24,7 @@
 #pragma mark - custom getters & setters
 
 - (NSMutableArray *)cards
-{
+{   
     // getter -> lazy instantiation
     if (!_cards)
         _cards = [[NSMutableArray alloc] init];
@@ -38,6 +38,8 @@
 //
 - (id)initWithCardCount:(NSUInteger)cardCount usingDeck:(Deck *)deck
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     // start off the initializer by letting our superclass have a chance to initialize itself (and checking for failure return of nil)
     self = [super init];
     
@@ -81,6 +83,8 @@
 
 - (void)flipCardAtIndex:(NSUInteger)index
 {
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
     // this is the guts of our class, it is where the game logic lives
     
     // grab the card
@@ -91,7 +95,7 @@
     {
         if (!card.isFaceUp)
         {
-            // see if flipping this card up creates a match. If we are flipping the card up, we need to 'play the game' here
+            // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
             for (Card *otherCard in self.cards)
             {
                 if (otherCard.isFaceUp && !otherCard.isUnplayable)
@@ -103,12 +107,14 @@
                     if (matchScore)
                     {
                         // if it's a match, both cards become unplayable, and we update the score
+                        NSLog(@"status : Matched %@ and %@ for %d points", card.contents, otherCard.contents, matchScore * MATCH_BONUS);
                         otherCard.unplayable = YES;
                         card.unplayable = YES;
                         self.score += matchScore * MATCH_BONUS;
                     }
                     else
                     {
+                        NSLog(@"status : %@ and %@ don't match! %d point penalty", card.contents, otherCard.contents, matchScore * MISMATCH_PENALTY);
                         otherCard.faceUp = NO;
                         self.score -= MISMATCH_PENALTY;
                     }
@@ -121,6 +127,11 @@
         
         // the card is playable, so we can flip it
         card.faceUp = !card.isFaceUp;
+        
+        if (card.isFaceUp)
+            NSLog(@"status : Flipped up : %@", card.contents);
+        else
+            NSLog(@"status : No cards flipped");
     }
 }
 
