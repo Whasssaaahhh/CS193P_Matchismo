@@ -95,135 +95,120 @@
     int score = 0;
     
     // only match a single other card (for now -> homework will be different)
-//    if (otherCards.count == 1)
-//    {
-//        NSLog(@"matching 2 cards");
-//        
-//        // let's get the card in the array (there will be only one card in the array if we got this far)
-//        // note : 'lastObject' is an NSArray method. It is just like [array objectAtIndex:array.count - 1], except that it will not crash if the array is empty. It will just return nil -> much more convenient!!!
-//        PlayingCard *otherCard = [otherCards lastObject];
-//        
-//        // matching the suit gives 4 times as many points for matching the suit (since there are only 3 cards that will match a given card's rank, but 12 which will match its suit)
-//        if([otherCard.suit isEqualToString:self.suit])
-//        {
-//            self.matched = YES;
-//            otherCard.matched = YES;
-//            score = 1;
-//        }
-//        else if (otherCard.rank == self.rank)
-//        {
-//            self.matched = YES;
-//            otherCard.matched = YES;
-//            score = 4;
-//        }
-//    }
+    if (otherCards.count == 1)
+    {
+        NSLog(@"matching 2 cards");
+        
+        // let's get the card in the array (there will be only one card in the array if we got this far)
+        // note : 'lastObject' is an NSArray method. It is just like [array objectAtIndex:array.count - 1], except that it will not crash if the array is empty. It will just return nil -> much more convenient!!!
+        PlayingCard *otherCard = [otherCards lastObject];
+        
+        // matching the suit gives 4 times as many points for matching the suit (since there are only 3 cards that will match a given card's rank, but 12 which will match its suit)
+        if([otherCard.suit isEqualToString:self.suit])
+        {
+            self.matched = YES;
+            otherCard.matched = YES;
+            score = 1;
+        }
+        else if (otherCard.rank == self.rank)
+        {
+            self.matched = YES;
+            otherCard.matched = YES;
+            score = 4;
+        }
+    }
+    
+    return score;
+}
 
-    NSLog(@"matching %d cards", otherCards.count + 1);
+// class method that matches n cards with each other, by running through all available suits & ranks
+// note that in case of for example 4 cards, there can be a match between 2 hearts, as well as 2 spades
+// many choices can be made here on how to determine the score
++ (int)matchMultiplePlayingCards:(NSArray *)cards
+{
+    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+    
+    int score = 0;
+    
+    NSLog(@"matching %d cards", cards.count);
     
     int suitMatches = 0;
-    int rankMatches = 0;
-    
-    // to make this a n-card matching function, just walk through the available suits & count the matches (use the class methods for this!)
-    // matching 3 cards
-    // Matching 7♠ with 9♦
-    // 7♠ with 8♦
     
     for (NSString *suit in [PlayingCard validSuits])
     {
-        suitMatches = 0;
+        int currentSuitMatches = 0;
         
         NSLog(@"matching suit %@", suit);
         
-        // first check ourselves against the suit
-        if ([self.suit isEqualToString:suit])
-            suitMatches++;
-        
-        // now check the other cards against the suit
-        for (PlayingCard *otherCard in otherCards)
+        // now check all cards against the suit
+        for (PlayingCard *aCard in cards)
         {
-            if([otherCard.suit isEqualToString:suit])
-                suitMatches++;
+            if([aCard.suit isEqualToString:suit])
+                currentSuitMatches++;
         }
         
-        // see if we have a winner (more than 1 suit matches)
-        if (suitMatches > 1)
+        // if we have a suit match, we should set the match @property
+        if (currentSuitMatches > 1)
         {
-            NSLog(@"suit %@ was matched %d times", suit, suitMatches);
+            NSLog(@"suit %@ was matched %d times", suit, currentSuitMatches);
             
-            if ([self.suit isEqualToString:suit])
-                self.matched = YES;
-            
-            for (PlayingCard *otherCard in otherCards)
+            for (PlayingCard *aPlayingCard in cards)
             {
-                if([otherCard.suit isEqualToString:suit])
-                    otherCard.matched = YES;
+                if([aPlayingCard.suit isEqualToString:suit])
+                    aPlayingCard.matched = YES;
             }
             
-            score += suitMatches;
+            // keep track of the suitMatches
+            suitMatches += currentSuitMatches;
         }
+    }
 
-    }
-    
-/*    for (NSUInteger rank = 0; rank < [PlayingCard maxRank]; rank++)
-    {
-        NSLog(@"matching rank %d", rank);
-        
-        // reset 
-        rankMatches = 0;
-        
-        // first check ourselves against the rank
-        // first check ourselves against the suit
-        if (self.rank == rank)
-            rankMatches++;
-        
-        // now check the other cards against the suit
-        for (PlayingCard *otherCard in otherCards)
-        {
-            if(otherCard.rank == rank)
-                rankMatches++;
-        }
-        
-        // see if we have a winner (more than 1 suit matches)
-        if (rankMatches > 1)
-        {
-            if (self.rank == rank)
-                self.matched = YES;
-            
-            for (PlayingCard *otherCard in otherCards)
-            {
-                if(otherCard.rank == rank)
-                    self.matched = YES;
-            }
-            
-            score += rankMatches;
-        }
-    }
-*/    
-//    for (PlayingCard *otherCard in otherCards)
-//    {
-//        NSLog(@"Matching %@ with %@", self.contents, otherCard.contents);
-//        
-//        if([otherCard.suit isEqualToString:self.suit])
-//        {
-//            self.matched = YES;
-//            otherCard.matched = YES;
-//            suitMatches++;
-//            score++;
-//        }
-//        if(otherCard.rank == self.rank)
-//        {
-//            self.matched = YES;
-//            otherCard.matched = YES;
-//            rankMatches++;
-//            score++;
-//        }
-//    }
+    // TBD : find out some cool score calculation
+    score += suitMatches;
     
     NSLog(@"found %d suit matches", suitMatches);
+   
+    int rankMatches = 0;
+
+    // note the '<=', you want to 'include' the maxRank too!
+    // note also that we start from rank '1' as '0' is considered an invalid rank
+    for (NSUInteger rank = 1; rank <= [PlayingCard maxRank]; rank++)   // TBD : add 'minRank' method instead of starting from '1' ??
+    {
+        int currentRankMatches = 0;
+        
+        NSLog(@"matching rank %d", rank);
+        
+        // now check all cards against the suit
+        for (PlayingCard *aCard in cards)
+        {
+            if(aCard.rank == rank)
+                currentRankMatches++;
+        }
+        
+        // if we have a suit match, we should set the match @property
+        if (currentRankMatches > 1)
+        {
+            NSLog(@"rank %d was matched %d times", rank, currentRankMatches);
+            
+            for (PlayingCard *aPlayingCard in cards)
+            {
+                if(aPlayingCard.rank == rank)
+                    aPlayingCard.matched = YES;
+            }
+            
+            // keep track of the suitMatches
+            rankMatches += currentRankMatches;
+        }
+    }    
+    
     NSLog(@"found %d rank matches", rankMatches);
+
+    // TBD : find out some cool score calculation
+    score += rankMatches;
     
     // TBD : calculate score from the matches
     return score;
 }
+
 
 @end

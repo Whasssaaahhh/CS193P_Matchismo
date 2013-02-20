@@ -16,5 +16,5 @@
 // class methods, don't need an instance to operate
 + (NSArray *)validSuits;
 + (NSUInteger)maxRank;
-
++ (int)matchMultiplePlayingCards:(NSArray *)cards;
 @end

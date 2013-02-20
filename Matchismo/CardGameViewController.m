@@ -81,8 +81,6 @@
     {
         // game adjusts automatically to the number of buttons on the screen!
         _game = [[CardMatchingGame alloc] initWithCardCount:self.cardButtons.count usingDeck:[[PlayingCardDeck alloc] init]];
-        
-        //[self updateUI];
     }
     
     return _game;
@@ -165,6 +163,10 @@
     
     // (re)enable the segmented control
     self.gameModeButton.enabled = YES;
+
+    // a new game has been created -> it's convenient for the user that the game mode stays in the last selected mode
+    // -> we need to set the game mode again, let's call the segmented control's action method (is there a better way/place to do this maybe???)
+    [self gameModeChanged:self.gameModeButton];
     
     // now update the UI - the call to the updateUI will create a new game the first time the getter is called!
 //    [self updateUI]; -> moved to 'setGame' method
@@ -174,8 +176,8 @@
 {
     NSLog(@"mode changed %d", sender.selectedSegmentIndex);
 
-    // index 0 == 2 card mode, index 1 == 3 card mode
-    self.game.numberOfCardsToMatch = (sender.selectedSegmentIndex == 0) ? 2 : 3;
+    // index 0 == 2 card mode, index 1 == 3 card mode, index 2 == 4 card mode, ...
+    self.game.numberOfCardsToMatch = sender.selectedSegmentIndex + 2;
 }
 
 @end

@@ -7,6 +7,7 @@
 //
 
 #import "CardMatchingGame.h"
+#import "PlayingCard.h"
 
 // "class extension"
 @interface CardMatchingGame()
@@ -90,61 +91,70 @@
     
     // this is the guts of our class, it is where the game logic lives
     
-    // grab the card
-    Card *card = [self cardAtIndex:index];
+    // grab the last card
+    Card *lastCard = [self cardAtIndex:index];
     
     // make sure it's playable
-    if (!card.isUnplayable)
+    if (!lastCard.isUnplayable)
     {
-        if (!card.isFaceUp)
+        // the (last) card is playable, so we can flip it
+        lastCard.faceUp = !lastCard.isFaceUp;
+        
+        // if the card was flipped up, we might need to play the game if enough cards are facing up
+        if (lastCard.isFaceUp)
         {
             // create an array of the other cards that are faced up
             NSMutableArray *faceUpCards = [[NSMutableArray alloc] init];
             
-            for (Card *otherCard in self.cards)
+            NSLog(@"searching for playable, faceUpCards in %d cards", self.cards.count);
+            
+            for (Card *aCard in self.cards)
             {
-                if (otherCard.isFaceUp && !otherCard.isUnplayable)
-                    [faceUpCards addObject:otherCard];
+                if (aCard.isFaceUp && !aCard.isUnplayable)
+                    [faceUpCards addObject:aCard];
             }
             
-            NSLog(@"found %d other cards facing up & playable", faceUpCards.count);
+            NSLog(@"found %d card(s) facing up & playable", faceUpCards.count);
             
-            // see if we have enough cards facing up for the current game mode (self.numberOfCardsToMatch minus 1!)
-            if (faceUpCards.count == (self.numberOfCardsToMatch - 1))
+            // see if we have enough cards facing up for the current game mode
+            if (faceUpCards.count == self.numberOfCardsToMatch)
             {
-                NSLog(@"enough cards - let's try to match");
+                // yes we have enough cards -> let's play the game
+                NSLog(@"enough (%d) cards facing up - let's try to match", faceUpCards.count);
                 
-                // note that 'match' will not only return a score, but also set the 'matched' @property of the card,
+                // note that the Class method 'matchMultiplePlayingCards' will not only return a score, but also set the 'matched' @property of the card,
                 // so we can 'disable' the card here
-                int matchScore = [card match:faceUpCards];
+                // int matchScore = [card match:faceUpCards];
+                int matchScore = [PlayingCard matchMultiplePlayingCards:faceUpCards];
                 if (matchScore)
                 {
-                    NSLog(@"matches found!");
-                    for (Card *card in self.cards)
+                    NSLog(@"matches found, score = %d!", matchScore);
+                    // go through ALL cards, disable the matched cards, and turn the non-matched cards
+                    for (Card *aCard in self.cards)
                     {
-                        // disable the matched cards, and turn the non-matched cards!
-                        if (card.matched)
-                            card.unplayable = YES;
+                        if (aCard.matched)
+                            aCard.unplayable = YES;
                         else
-                            card.faceUp = NO;
+                            aCard.faceUp = NO;
                     }
-                    
-                    // also disable our last flipped card
-                    //card.unplayable = YES;
                 }
                 else
                 {
                     NSLog(@"no matches found!");
-                    for (Card *card in self.cards)
+                    // go through ALL cards, turn back only playable cards
+                    for (Card *aCard in self.cards)
                     {
-                        // turn back only playable cards
-                        if (!card.isUnplayable)
-                            card.faceUp = NO;
+                        if (!aCard.isUnplayable)
+                            aCard.faceUp = NO;
                     }
                 }
                 
+                // if 'lastCard' was not a matching card, we should leave it facing up, that feels more 'intuitive' to the game (personal choice)
+                if (!lastCard.matched)
+                    lastCard.faceUp = YES;
             }
 
+            
             // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
 //            for (Card *otherCard in self.cards)
 //            {
@@ -172,14 +182,12 @@
 //                }
 //            }
             // let's always charge a cost to flip
+            // TBD : if the player leaves one or more card(s) faced up, count extra FLIP_COST here (or even x2) !!!
             self.score -= FLIP_COST;
         }
         
-        // the card is playable, so we can flip it
-        card.faceUp = !card.isFaceUp;
-        
-        if (card.isFaceUp)
-            NSLog(@"status : Flipped up : %@", card.contents);
+        if (lastCard.isFaceUp)
+            NSLog(@"status : Flipped up : %@", lastCard.contents);
         else
             NSLog(@"status : No cards flipped");
     }
