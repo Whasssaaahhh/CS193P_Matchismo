@@ -175,7 +175,7 @@
     NSLog(@"mode changed %d", sender.selectedSegmentIndex);
 
     // index 0 == 2 card mode, index 1 == 3 card mode
-    self.game.gameMode3cards = (sender.selectedSegmentIndex == 1) ? YES : NO;
+    self.game.numberOfCardsToMatch = (sender.selectedSegmentIndex == 0) ? 2 : 3;
 }
 
 @end

@@ -242,7 +242,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="KP1-Qn-dZ3">
-                                <rect key="frame" x="137" y="397" width="62" height="44"/>
+                                <rect key="frame" x="115" y="397" width="62" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" title="deal">
@@ -257,11 +257,12 @@
                                 </connections>
                             </button>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bordered" selectedSegmentIndex="0" id="2Lg-CI-8Py">
-                                <rect key="frame" x="217" y="397" width="83" height="44"/>
+                                <rect key="frame" x="192" y="397" width="108" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
-                                    <segment title="2m"/>
-                                    <segment title="3m"/>
+                                    <segment title="2"/>
+                                    <segment title="3"/>
+                                    <segment title="4"/>
                                 </segments>
                                 <connections>
                                     <action selector="gameModeChanged:" destination="2" eventType="valueChanged" id="4xe-ow-99s"/>

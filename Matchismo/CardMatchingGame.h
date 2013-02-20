@@ -29,7 +29,7 @@
 
 @property (nonatomic,readonly) NSString *status;
 
-@property (nonatomic) BOOL gameMode3cards;
+@property (nonatomic) int numberOfCardsToMatch;
 
 @end
 

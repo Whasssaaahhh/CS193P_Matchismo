@@ -64,6 +64,9 @@
                 self.cards[i] = card;
             }
         }
+        
+        // set default value for some properties
+        self.numberOfCardsToMatch = 2;
     }
     
     return self;
@@ -95,32 +98,79 @@
     {
         if (!card.isFaceUp)
         {
-            // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
+            // create an array of the other cards that are faced up
+            NSMutableArray *faceUpCards = [[NSMutableArray alloc] init];
+            
             for (Card *otherCard in self.cards)
             {
                 if (otherCard.isFaceUp && !otherCard.isUnplayable)
-                {
-                    // if we find it, check to see if it matches using the Card's match: method
-                    // 'match:' returns how good a match was (zero if not a match)
-                    // 'match:' takes an NSArray of other cards in case a subclass can match multiple cards. Since our matching game is only a 2-card matching game, we just create a single element array using @[ ] array creation syntac (new since iOS 6)
-                    int matchScore = [card match:@[otherCard]];
-                    if (matchScore)
-                    {
-                        // if it's a match, both cards become unplayable, and we update the score
-                        NSLog(@"status : Matched %@ and %@ for %d points", card.contents, otherCard.contents, matchScore * MATCH_BONUS);
-                        otherCard.unplayable = YES;
-                        card.unplayable = YES;
-                        self.score += matchScore * MATCH_BONUS;
-                    }
-                    else
-                    {
-                        NSLog(@"status : %@ and %@ don't match! %d point penalty", card.contents, otherCard.contents, matchScore * MISMATCH_PENALTY);
-                        otherCard.faceUp = NO;
-                        self.score -= MISMATCH_PENALTY;
-                    }
-                    break;  // break out because match was found
-                }
+                    [faceUpCards addObject:otherCard];
             }
+            
+            NSLog(@"found %d other cards facing up & playable", faceUpCards.count);
+            
+            // see if we have enough cards facing up for the current game mode (self.numberOfCardsToMatch minus 1!)
+            if (faceUpCards.count == (self.numberOfCardsToMatch - 1))
+            {
+                NSLog(@"enough cards - let's try to match");
+                
+                // note that 'match' will not only return a score, but also set the 'matched' @property of the card,
+                // so we can 'disable' the card here
+                int matchScore = [card match:faceUpCards];
+                if (matchScore)
+                {
+                    NSLog(@"matches found!");
+                    for (Card *card in self.cards)
+                    {
+                        // disable the matched cards, and turn the non-matched cards!
+                        if (card.matched)
+                            card.unplayable = YES;
+                        else
+                            card.faceUp = NO;
+                    }
+                    
+                    // also disable our last flipped card
+                    //card.unplayable = YES;
+                }
+                else
+                {
+                    NSLog(@"no matches found!");
+                    for (Card *card in self.cards)
+                    {
+                        // turn back only playable cards
+                        if (!card.isUnplayable)
+                            card.faceUp = NO;
+                    }
+                }
+                
+            }
+
+            // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
+//            for (Card *otherCard in self.cards)
+//            {
+//                if (otherCard.isFaceUp && !otherCard.isUnplayable)
+//                {
+//                    // if we find it, check to see if it matches using the Card's match: method
+//                    // 'match:' returns how good a match was (zero if not a match)
+//                    // 'match:' takes an NSArray of other cards in case a subclass can match multiple cards. Since our matching game is only a 2-card matching game, we just create a single element array using @[ ] array creation syntac (new since iOS 6)
+//                    int matchScore = [card match:@[otherCard]];
+//                    if (matchScore)
+//                    {
+//                        // if it's a match, both cards become unplayable, and we update the score
+//                        NSLog(@"status : Matched %@ and %@ for %d points", card.contents, otherCard.contents, matchScore * MATCH_BONUS);
+//                        otherCard.unplayable = YES;
+//                        card.unplayable = YES;
+//                        self.score += matchScore * MATCH_BONUS;
+//                    }
+//                    else
+//                    {
+//                        NSLog(@"status : %@ and %@ don't match! %d point penalty", card.contents, otherCard.contents, matchScore * MISMATCH_PENALTY);
+//                        otherCard.faceUp = NO;
+//                        self.score -= MISMATCH_PENALTY;
+//                    }
+//                    break;  // break out because match was found
+//                }
+//            }
             // let's always charge a cost to flip
             self.score -= FLIP_COST;
         }
@@ -134,5 +184,59 @@
             NSLog(@"status : No cards flipped");
     }
 }
+
+//- (void)flipCardAtIndex:(NSUInteger)index
+//{
+//    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+//    
+//    // this is the guts of our class, it is where the game logic lives
+//    
+//    // grab the card
+//    Card *card = [self cardAtIndex:index];
+//    
+//    // make sure it's playable
+//    if (!card.isUnplayable)
+//    {
+//        if (!card.isFaceUp)
+//        {
+//            // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
+//            for (Card *otherCard in self.cards)
+//            {
+//                if (otherCard.isFaceUp && !otherCard.isUnplayable)
+//                {
+//                    // if we find it, check to see if it matches using the Card's match: method
+//                    // 'match:' returns how good a match was (zero if not a match)
+//                    // 'match:' takes an NSArray of other cards in case a subclass can match multiple cards. Since our matching game is only a 2-card matching game, we just create a single element array using @[ ] array creation syntac (new since iOS 6)
+//                    int matchScore = [card match:@[otherCard]];
+//                    if (matchScore)
+//                    {
+//                        // if it's a match, both cards become unplayable, and we update the score
+//                        NSLog(@"status : Matched %@ and %@ for %d points", card.contents, otherCard.contents, matchScore * MATCH_BONUS);
+//                        otherCard.unplayable = YES;
+//                        card.unplayable = YES;
+//                        self.score += matchScore * MATCH_BONUS;
+//                    }
+//                    else
+//                    {
+//                        NSLog(@"status : %@ and %@ don't match! %d point penalty", card.contents, otherCard.contents, matchScore * MISMATCH_PENALTY);
+//                        otherCard.faceUp = NO;
+//                        self.score -= MISMATCH_PENALTY;
+//                    }
+//                    break;  // break out because match was found
+//                }
+//            }
+//            // let's always charge a cost to flip
+//            self.score -= FLIP_COST;
+//        }
+//        
+//        // the card is playable, so we can flip it
+//        card.faceUp = !card.isFaceUp;
+//        
+//        if (card.isFaceUp)
+//            NSLog(@"status : Flipped up : %@", card.contents);
+//        else
+//            NSLog(@"status : No cards flipped");
+//    }
+//}
 
 @end
