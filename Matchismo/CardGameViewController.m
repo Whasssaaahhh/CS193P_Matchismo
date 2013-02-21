@@ -27,6 +27,8 @@
 
 @property (weak, nonatomic) IBOutlet UISlider *historySlider;
 
+@property (nonatomic) NSUInteger historyIndex;
+
 @property (weak, nonatomic) IBOutlet UILabel *historyIndexLabel;
 
 // note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
@@ -147,6 +149,9 @@
     
     // update the flipsLabel
     self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
+
+    // update the history index label
+    self.historyIndexLabel.text = [NSString stringWithFormat:@"%g", self.historySlider.value];
 }
 
 - (void)addFlipEventToHistory:(NSUInteger)index
@@ -155,7 +160,13 @@
     
     NSLog(@"events in history : %d", self.history.count);
     
-    // TBD : adjust slider max value
+    // each time a flipEvent is added to the history, we must update the sliders's maximum value
+    self.historySlider.maximumValue = self.history.count;
+    
+    // keep the slider positioned at the last event
+    self.historySlider.value = self.historySlider.maximumValue;
+    
+    [self updateUI];
 }
 
 
@@ -165,6 +176,22 @@
 {
     NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 
+    // at the very first flip, we need to do some stuff (TBD : except when we go through the history !!!)
+    if (self.flipCount == 0)
+    {
+        // disable the segmented control
+        self.gameModeButton.enabled = NO;
+        
+        // set the slider to the right side, and disable it
+        // we need to do a trick here, and set the value to '1', even though it should be '0'
+//        self.historySlider.maximumValue = 1;
+//        self.historySlider.value = 1;
+        self.historySlider.enabled = YES;
+        
+        // let's set the history index to 0 and hidden, because of the above trick
+        self.historyIndexLabel.hidden = NO;
+    }
+    
     // increment the count each time we flip a (playable) card up
     // we could also look at the button state here, but then we cannot use the same code for the history feature, where we 'simulate' button presses
     Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:sender]];
@@ -173,13 +200,8 @@
     
     // we won't flip cards ourselves anymore, we'll let the CardMatchingGame do it
     [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
-    
-    // if flipping starts, disable the segmented control
-    if (self.flipCount == 0)
-        self.gameModeButton.enabled = NO;
 
-    
-    // add event to history
+    // add event to history (also updates the UISlider's number of positions)
     [self addFlipEventToHistory:[self.cardButtons indexOfObject:sender]];
     
     // update the UI when a card gets flipped
@@ -188,24 +210,38 @@
 
 - (IBAction)startNewGame:(id)sender
 {
-    // because flipCount is not part of the model, it will not automatically be cleared (the score does get cleared to zero, because it's part of the model)
-    self.flipCount = 0;
-
     // very ellegant way to start a new game is to set self.game to nil -> next time the getter of game is called (happens right after this in updateUI) -> a new pack of cards will be generated
     self.game = nil;
+
+    // because flipCount is not part of the model, it will not automatically be cleared (the score does get cleared to zero, because it's part of the model)
+    // TBD : move flipCount to the model?
+    self.flipCount = 0;
     
     // (re)enable the segmented control
     self.gameModeButton.enabled = YES;
 
     // a new game has been created -> it's convenient for the user that the game mode stays in the last selected mode
-    // -> we need to set the game mode again, let's call the segmented control's action method (is there a better way/place to do this maybe???)
+    // -> we need to set the game mode again, let's call the segmented control's action method (TBD : is there a better way/place to do this maybe???)
     [self gameModeChanged:self.gameModeButton];
     
     // clear history
+    
+    // TBD : put the history slider in it's starting position (to the right)
+    // TBD : make/move to a history update function?
     self.history = nil;
     
+    // set the slider to the right side, and disable it
+    // we need to do a trick here, and set the value to '1', even though it should be '0'
+    self.historySlider.maximumValue = 1;
+    self.historySlider.value = 1;
+    self.historySlider.enabled = NO;
+    
+    // let's set the history index to 0 and hidden, because of the above trick
+    self.historyIndex = 0;
+    self.historyIndexLabel.hidden = TRUE;
+    
     // now update the UI - the call to the updateUI will create a new game the first time the getter is called!
-//    [self updateUI]; -> moved to 'setGame' method
+    [self updateUI]; //-> moved to 'setGame' method
 }
 
 - (IBAction)gameModeChanged:(UISegmentedControl *)sender
@@ -220,7 +256,11 @@
 {
     NSLog(@"slider value : %g", sender.value);
     
-    self.historyIndexLabel.text = [NSString stringWithFormat:@"%g", sender.value];
+    // make the UISlider 'stepping' through int values
+    self.historyIndex = (NSUInteger)(round(sender.value));
+    [sender setValue:self.historyIndex animated:NO];
+    
+    [self updateUI];
 }
 
 @end
