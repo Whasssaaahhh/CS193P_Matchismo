@@ -25,6 +25,10 @@
 
 @property (weak, nonatomic) IBOutlet UISegmentedControl *gameModeButton;
 
+@property (weak, nonatomic) IBOutlet UISlider *historySlider;
+
+@property (weak, nonatomic) IBOutlet UILabel *historyIndexLabel;
+
 // note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
 // we aren't going to send any messages to self.deck that aren't understood by the base 'Deck' class. The only message we'll send is 'drawRandomCard', that's not a PlayingCardDeck method, it's a Deck method.
 
@@ -32,6 +36,9 @@
 
 // property for our game model
 @property (nonatomic, strong) CardMatchingGame *game;
+
+// keep track of all flips so we can replay everything (using a slider)
+@property (strong, nonatomic) NSMutableArray* history;
 
 @end
 
@@ -94,6 +101,15 @@
     [self updateUI];
 }
 
+- (NSMutableArray *)history
+{
+    if (!_history)
+    {
+        _history = [[NSMutableArray alloc] init];
+    }
+    return _history;
+}
+
 #pragma mark - xxx
 
 - (void)updateUI
@@ -133,11 +149,27 @@
     self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
 }
 
+- (void)addFlipEventToHistory:(NSUInteger)index
+{
+    [self.history addObject:[NSNumber numberWithInt:index]];
+    
+    NSLog(@"events in history : %d", self.history.count);
+    
+    // TBD : adjust slider max value
+}
+
+
 #pragma mark - IBAction methods
 
 - (IBAction)flipCard:(UIButton *)sender
 {
     NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+
+    // increment the count each time we flip a (playable) card up
+    // we could also look at the button state here, but then we cannot use the same code for the history feature, where we 'simulate' button presses
+    Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:sender]];
+    if((!card.isFaceUp) & (!card.isUnplayable))
+        self.flipCount++;
     
     // we won't flip cards ourselves anymore, we'll let the CardMatchingGame do it
     [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
@@ -145,9 +177,10 @@
     // if flipping starts, disable the segmented control
     if (self.flipCount == 0)
         self.gameModeButton.enabled = NO;
+
     
-    // increment the count each time we flip
-    self.flipCount++;
+    // add event to history
+    [self addFlipEventToHistory:[self.cardButtons indexOfObject:sender]];
     
     // update the UI when a card gets flipped
     [self updateUI];
@@ -168,6 +201,9 @@
     // -> we need to set the game mode again, let's call the segmented control's action method (is there a better way/place to do this maybe???)
     [self gameModeChanged:self.gameModeButton];
     
+    // clear history
+    self.history = nil;
+    
     // now update the UI - the call to the updateUI will create a new game the first time the getter is called!
 //    [self updateUI]; -> moved to 'setGame' method
 }
@@ -178,6 +214,13 @@
 
     // index 0 == 2 card mode, index 1 == 3 card mode, index 2 == 4 card mode, ...
     self.game.numberOfCardsToMatch = sender.selectedSegmentIndex + 2;
+}
+
+- (IBAction)historySliderChanged:(UISlider *)sender
+{
+    NSLog(@"slider value : %g", sender.value);
+    
+    self.historyIndexLabel.text = [NSString stringWithFormat:@"%g", sender.value];
 }
 
 @end
