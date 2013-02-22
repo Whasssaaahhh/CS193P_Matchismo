@@ -85,10 +85,9 @@
         card.matched = NO;
     }
     
-    // clear score
+    // reset tracking properties
     self.score = 0;
-    
-    // clear status
+    self.flipCount = 0;
     self.status = nil;
 }
 
@@ -122,6 +121,9 @@
         // if the card was flipped up, we might need to play the game if enough cards are facing up
         if (lastCard.isFaceUp)
         {
+            // keep track of the flipCount
+            self.flipCount++;
+            
             // create an array of the other cards that are faced up
             NSMutableArray *faceUpCards = [[NSMutableArray alloc] init];
             

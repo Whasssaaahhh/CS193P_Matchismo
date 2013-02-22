@@ -18,7 +18,7 @@
 @property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
 
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
-@property (nonatomic) int flipCount;
+//@property (nonatomic) int flipCount;
 
 @property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
 
@@ -69,14 +69,14 @@
 
 @synthesize game = _game;
 
-- (void)setFlipCount:(int)flipCount
-{   
-    // it's a setter -> don't forget to set
-    _flipCount = flipCount;
-    
-    // using the setter to update the flipsLabel
-    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
-}
+//- (void)setFlipCount:(int)flipCount
+//{   
+//    // it's a setter -> don't forget to set
+//    _flipCount = flipCount;
+//    
+//    // using the setter to update the flipsLabel
+//    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
+//}
 
 - (void)setCardButtons:(NSArray *)cardButtons
 {    
@@ -153,7 +153,7 @@
     self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
     
     // update the flipsLabel
-    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
+    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.game.flipCount];
 
     // update the history index label
     self.historyIndexLabel.text = [NSString stringWithFormat:@"%g", self.historySlider.value];
@@ -170,7 +170,7 @@
         return;
     
     // at the very first flip, we need to do some stuff (TBD : except when we go through the history !!!)
-    if (self.flipCount == 0)
+    if (self.game.flipCount == 0)
     {
         // disable the segmented control
         self.gameModeButton.enabled = NO;
@@ -187,9 +187,9 @@
     
     // increment the count each time we flip a (playable) card up
     // we could also look at the button state here, but then we cannot use the same code for the history feature, where we 'simulate' button presses
-    Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:sender]];
-    if((!card.isFaceUp) & (!card.isUnplayable))
-        self.flipCount++;
+//    Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:sender]];
+//    if((!card.isFaceUp) & (!card.isUnplayable))
+//        self.game.flipCount++;
     
     // we won't flip cards ourselves anymore, we'll let the CardMatchingGame do it
     [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
@@ -208,7 +208,7 @@
 
     // because flipCount is not part of the model, it will not automatically be cleared (the score does get cleared to zero, because it's part of the model)
     // TBD : move flipCount to the model?
-    self.flipCount = 0;
+//    self.flipCount = 0;
     
     // (re)enable the segmented control
     self.gameModeButton.enabled = YES;
@@ -296,9 +296,11 @@
         
         // disable the deal button (card buttons cannot be disabled here, as that is part of the regular functionality)
         self.dealButton.enabled = NO;
+        self.dealButton.alpha = 0.3;
         
         // do some cool animation to make clear to the user we're timeWarping
         [UIView animateWithDuration:0.3 animations:^{self.view.backgroundColor = [UIColor darkGrayColor];}];
+        
         NSLog(@"Timewarp started");
     }
     
@@ -326,9 +328,11 @@
         
         // re-enable the deal button
         self.dealButton.enabled = YES;
+        self.dealButton.alpha = 1.0;
         
         // animate back to the present
         [UIView animateWithDuration:0.3 animations:^{self.view.backgroundColor = [UIColor whiteColor];}];
+        
         NSLog(@"Timewarp ended");
     }
 }

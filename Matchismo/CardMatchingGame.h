@@ -32,6 +32,8 @@
 
 @property (nonatomic,readonly) NSString *status;
 
+@property (nonatomic) int flipCount;
+
 @property (nonatomic) int numberOfCardsToMatch;
 
 @end
