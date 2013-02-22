@@ -130,14 +130,14 @@
     
     int score = 0;
     
-    NSLog(@"matching %d cards", cards.count);
+//    NSLog(@"matching %d cards", cards.count);
     
     int suitMatches = 0;
     
     for (NSString *suit in [PlayingCard validSuits])
     {
         int currentSuitMatches = 0;
-        
+//
         NSLog(@"matching suit %@", suit);
         
         // now check all cards against the suit
@@ -166,7 +166,7 @@
     // TBD : find out some cool score calculation
     score += suitMatches;
     
-    NSLog(@"found %d suit matches", suitMatches);
+//    NSLog(@"found %d suit matches", suitMatches);
    
     int rankMatches = 0;
 
@@ -176,7 +176,7 @@
     {
         int currentRankMatches = 0;
         
-        NSLog(@"matching rank %d", rank);
+//        NSLog(@"matching rank %d", rank);
         
         // now check all cards against the suit
         for (PlayingCard *aCard in cards)
@@ -201,6 +201,7 @@
         }
     }    
     
+//
     NSLog(@"found %d rank matches", rankMatches);
 
     // TBD : find out some cool score calculation

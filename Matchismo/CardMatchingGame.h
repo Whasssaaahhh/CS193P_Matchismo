@@ -25,6 +25,9 @@
 // it must be possible to get a card so that for a given index it can be displayed by some UI somewhere
 - (Card *)cardAtIndex:(NSUInteger)index;
 
+// resets the game to it's beginning state (to allow history feature)
+- (void)resetGame;
+
 @property (nonatomic,readonly) int score;       // no setter
 
 @property (nonatomic,readonly) NSString *status;

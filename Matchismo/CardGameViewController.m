@@ -10,6 +10,7 @@
 #import "PlayingCardDeck.h"
 #import "PlayingCard.h"
 #import "CardMatchingGame.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface CardGameViewController ()
 // outlet collection arrays are always strong. While the view will point strongly to the UIButtons 'inside' the array, it will not point to the array itself at all, only the controller will -> the outlet needs to be strongly held in the heap by our controller
@@ -25,22 +26,26 @@
 
 @property (weak, nonatomic) IBOutlet UISegmentedControl *gameModeButton;
 
+@property (weak, nonatomic) IBOutlet UIButton *dealButton;
+
 @property (weak, nonatomic) IBOutlet UISlider *historySlider;
+
+@property (weak, nonatomic) IBOutlet UILabel *historyIndexLabel;
+
+// History function - keep track of all flips so we can replay everything (using a slider)
+@property (strong, nonatomic) NSMutableArray* history;
 
 @property (nonatomic) NSUInteger historyIndex;
 
-@property (weak, nonatomic) IBOutlet UILabel *historyIndexLabel;
+@property (nonatomic) BOOL timeWarpActive;
+
+// property for our game model
+@property (nonatomic, strong) CardMatchingGame *game;
 
 // note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
 // we aren't going to send any messages to self.deck that aren't understood by the base 'Deck' class. The only message we'll send is 'drawRandomCard', that's not a PlayingCardDeck method, it's a Deck method.
 
 //@property (nonatomic, strong) Deck *deck;
-
-// property for our game model
-@property (nonatomic, strong) CardMatchingGame *game;
-
-// keep track of all flips so we can replay everything (using a slider)
-@property (strong, nonatomic) NSMutableArray* history;
 
 @end
 
@@ -112,7 +117,7 @@
     return _history;
 }
 
-#pragma mark - xxx
+#pragma mark - Helper methods
 
 - (void)updateUI
 {
@@ -154,28 +159,16 @@
     self.historyIndexLabel.text = [NSString stringWithFormat:@"%g", self.historySlider.value];
 }
 
-- (void)addFlipEventToHistory:(NSUInteger)index
-{
-    [self.history addObject:[NSNumber numberWithInt:index]];
-    
-    NSLog(@"events in history : %d", self.history.count);
-    
-    // each time a flipEvent is added to the history, we must update the sliders's maximum value
-    self.historySlider.maximumValue = self.history.count;
-    
-    // keep the slider positioned at the last event
-    self.historySlider.value = self.historySlider.maximumValue;
-    
-    [self updateUI];
-}
-
-
 #pragma mark - IBAction methods
 
 - (IBAction)flipCard:(UIButton *)sender
 {
     NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
 
+    // ignore the card buttons when we are timeWarping !!!
+    if (self.timeWarpActive)
+        return;
+    
     // at the very first flip, we need to do some stuff (TBD : except when we go through the history !!!)
     if (self.flipCount == 0)
     {
@@ -252,15 +245,92 @@
     self.game.numberOfCardsToMatch = sender.selectedSegmentIndex + 2;
 }
 
+#pragma mark - Methods to handle History
+
+- (void)addFlipEventToHistory:(NSUInteger)index
+{
+    [self.history addObject:[NSNumber numberWithInt:index]];
+    
+    NSLog(@"events in history : %d", self.history.count);
+    
+    // each time a flipEvent is added to the history, we must update the sliders's maximum value
+    self.historySlider.maximumValue = self.history.count;
+    
+    // keep the slider positioned at the last event
+    self.historySlider.value = self.historySlider.maximumValue;
+    
+    [self updateUI];
+}
+
+- (void)timeWarpToFlipEvent:(NSUInteger)event
+{
+    NSLog(@"Time warping to flip #%d", event);
+    
+    // reset to beginning state of this game ('no cards flipped' situation)
+    [self.game resetGame];
+    
+    // now 'replay' each flip event
+    for (NSUInteger i = 0; i < event; i++)
+    {
+        NSUInteger indexOfCard = [(NSNumber *)self.history[i] intValue];
+        NSLog(@"\t flip card at index %d", indexOfCard);
+        [self.game flipCardAtIndex:indexOfCard];
+    }
+    
+    [self updateUI];
+}
+
 - (IBAction)historySliderChanged:(UISlider *)sender
 {
     NSLog(@"slider value : %g", sender.value);
     
     // make the UISlider 'stepping' through int values
-    self.historyIndex = (NSUInteger)(round(sender.value));
-    [sender setValue:self.historyIndex animated:NO];
+    NSUInteger value = (NSUInteger)(round(sender.value));
+    [sender setValue:value animated:NO];
     
-    [self updateUI];
+    // detect a start of TimeWarp
+    if ((!self.timeWarpActive) && (value != self.history.count))
+    {
+        // keep track of state
+        self.timeWarpActive = YES;
+        
+        // disable the deal button (card buttons cannot be disabled here, as that is part of the regular functionality)
+        self.dealButton.enabled = NO;
+        
+        // do some cool animation to make clear to the user we're timeWarping
+        [UIView animateWithDuration:0.3 animations:^{self.view.backgroundColor = [UIColor darkGrayColor];}];
+        NSLog(@"Timewarp started");
+    }
+    
+    if (self.timeWarpActive)
+    {
+        // only update if the slider moved to a different value
+        if (self.historyIndex != value)
+        {
+            self.historyIndex = value;
+            
+            // if we need to go back in time, disable some stuff
+            [self timeWarpToFlipEvent:self.historyIndex];
+            
+            [self updateUI];
+        }
+        else
+            NSLog(@"same value, nothing to do in timeWarp");
+    }
+    
+    // detect end of TimeWarp
+    if (self.timeWarpActive && (value == self.history.count))
+    {
+        // keep track of the state
+        self.timeWarpActive = NO;
+        
+        // re-enable the deal button
+        self.dealButton.enabled = YES;
+        
+        // animate back to the present
+        [UIView animateWithDuration:0.3 animations:^{self.view.backgroundColor = [UIColor whiteColor];}];
+        NSLog(@"Timewarp ended");
+    }
 }
 
 @end

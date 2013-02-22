@@ -27,10 +27,11 @@
                 PlayingCard *card = [[PlayingCard alloc] init];
                 card.rank = rank;
                 card.suit = suit;
-                NSLog(@"Adding card %@ to deck", card.contents);
+//                NSLog(@"Adding card %@ to deck", card.contents);
                 [self addCard:card atTop:YES];
             }
         }
+ //       NSLog(@"Created a PlayingCardDeck with %d cards", self.cards.count); -> no access to self.cards !!! ??? TBD
     }
     
     return self;

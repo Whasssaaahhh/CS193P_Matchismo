@@ -18,6 +18,8 @@
 // There will be a setter generated for this @property. But anyone using this class through it's public API will not know that (since it is readonly in it's public @interface)
 @property (nonatomic, readwrite) int score;
 
+@property (nonatomic,readwrite) NSString *status;
+
 @end
 
 @implementation CardMatchingGame
@@ -71,6 +73,23 @@
     }
     
     return self;
+}
+
+- (void)resetGame
+{
+    // reset all cards to their beginning state
+    for (Card *card in self.cards)
+    {
+        card.faceUp = NO;
+        card.unplayable = NO;
+        card.matched = NO;
+    }
+    
+    // clear score
+    self.score = 0;
+    
+    // clear status
+    self.status = nil;
 }
 
 #pragma mark - xxx

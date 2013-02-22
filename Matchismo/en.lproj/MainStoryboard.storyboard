@@ -271,6 +271,7 @@
                             <slider opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.10000000000000001" minValue="0.0" maxValue="0.10000000000000001" id="CBS-wj-c61">
                                 <rect key="frame" x="18" y="339" width="234" height="23"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="minimumTrackTintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <color key="maximumTrackTintColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="thumbTintColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <connections>
@@ -285,9 +286,10 @@
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
-                        <color key="backgroundColor" red="0.90196079015731812" green="0.90196079015731812" blue="0.90196079015731812" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                     </view>
                     <connections>
+                        <outlet property="dealButton" destination="KP1-Qn-dZ3" id="Lfo-th-uwL"/>
                         <outlet property="flipsLabel" destination="tcg-tr-CLa" id="mGy-0R-wT9"/>
                         <outlet property="gameModeButton" destination="2Lg-CI-8Py" id="ufu-Lg-9cY"/>
                         <outlet property="historyIndexLabel" destination="hDs-Ei-pWR" id="kGP-Ha-pvq"/>
@@ -324,6 +326,7 @@
                 <relationship kind="action" name="gameModeChanged:" candidateClass="UISegmentedControl"/>
                 <relationship kind="action" name="historySliderChanged:" candidateClass="UISlider"/>
                 <relationship kind="action" name="startNewGame:"/>
+                <relationship kind="outlet" name="dealButton" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="flipsLabel" candidateClass="UILabel"/>
                 <relationship kind="outlet" name="gameModeButton" candidateClass="UISegmentedControl"/>
                 <relationship kind="outlet" name="historyIndexLabel" candidateClass="UILabel"/>
