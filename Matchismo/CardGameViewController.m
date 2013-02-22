@@ -18,7 +18,6 @@
 @property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
 
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
-//@property (nonatomic) int flipCount;
 
 @property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
 
@@ -42,41 +41,31 @@
 // property for our game model
 @property (nonatomic, strong) CardMatchingGame *game;
 
-// note that we make this of class 'Deck' instead of a 'PlayingCardDeck', because nothing in this class is going to use anything about a PlayingCard, we're not going to call 'suit' or 'rank' or anything else -> there is no reason for that property to be any more specific about what kind of class it is than it needs to be. It makes this class more generic, which is just good OO programming. Since a PlayingCardDeck inherits from Deck, it 'IS A' deck, so it's perfectly legal to say that the 'Deck' property 'deck' equals a 'PlayingCardDeck'
-// we aren't going to send any messages to self.deck that aren't understood by the base 'Deck' class. The only message we'll send is 'drawRandomCard', that's not a PlayingCardDeck method, it's a Deck method.
-
-//@property (nonatomic, strong) Deck *deck;
-
 @end
 
 #pragma mark - Custom setters & getters
 
 @implementation CardGameViewController
 
-//- (Deck *)deck
-//{
-//    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-//    
-//    // it's a getter -> lazy instantiation
-//    if (!_deck)
-//    {
-//        // even though our deck @property is of class Deck, we are within our rights to set it to a PlayingCardDeck instance, since PlayingCardDeck inherits from Deck (and thus 'isa' Deck)
-//        _deck = [[PlayingCardDeck alloc] init];
-//    }
-//    
-//    return _deck;
-//}
-
 @synthesize game = _game;
 
-//- (void)setFlipCount:(int)flipCount
-//{   
-//    // it's a setter -> don't forget to set
-//    _flipCount = flipCount;
-//    
-//    // using the setter to update the flipsLabel
-//    self.flipsLabel.text = [NSString stringWithFormat:@"Flips: %d", self.flipCount];
-//}
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+
+    // give the cards a nice background image
+    UIImage *cardBackImage = [UIImage imageNamed:@"Butterfly.jpeg"];
+    UIImage *noImage = [[UIImage alloc] init];      // simply using 'nil' as parameter for setImage doesn't seem to work!
+    
+    for(UIButton *cardButton in self.cardButtons)
+    {
+        // set card background image
+        [cardButton setImage:cardBackImage forState:UIControlStateNormal];
+        [cardButton setImage:noImage forState:UIControlStateSelected];
+        [cardButton setImage:noImage forState:UIControlStateSelected | UIControlStateDisabled];
+        [cardButton setImageEdgeInsets:UIEdgeInsetsMake(5,5,5,5)];
+    }
+}
 
 - (void)setCardButtons:(NSArray *)cardButtons
 {    
@@ -169,27 +158,16 @@
     if (self.timeWarpActive)
         return;
     
-    // at the very first flip, we need to do some stuff (TBD : except when we go through the history !!!)
+    // at the very first flip, we need to do some stuff
     if (self.game.flipCount == 0)
     {
         // disable the segmented control
         self.gameModeButton.enabled = NO;
         
-        // set the slider to the right side, and disable it
-        // we need to do a trick here, and set the value to '1', even though it should be '0'
-//        self.historySlider.maximumValue = 1;
-//        self.historySlider.value = 1;
+        // enable the slider, and show the label
         self.historySlider.enabled = YES;
-        
-        // let's set the history index to 0 and hidden, because of the above trick
         self.historyIndexLabel.hidden = NO;
     }
-    
-    // increment the count each time we flip a (playable) card up
-    // we could also look at the button state here, but then we cannot use the same code for the history feature, where we 'simulate' button presses
-//    Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:sender]];
-//    if((!card.isFaceUp) & (!card.isUnplayable))
-//        self.game.flipCount++;
     
     // we won't flip cards ourselves anymore, we'll let the CardMatchingGame do it
     [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
@@ -206,11 +184,7 @@
     // very ellegant way to start a new game is to set self.game to nil -> next time the getter of game is called (happens right after this in updateUI) -> a new pack of cards will be generated
     self.game = nil;
 
-    // because flipCount is not part of the model, it will not automatically be cleared (the score does get cleared to zero, because it's part of the model)
-    // TBD : move flipCount to the model?
-//    self.flipCount = 0;
-    
-    // (re)enable the segmented control
+    // (re)enable the segmented control so a new game mode can be selected
     self.gameModeButton.enabled = YES;
 
     // a new game has been created -> it's convenient for the user that the game mode stays in the last selected mode
@@ -218,23 +192,20 @@
     [self gameModeChanged:self.gameModeButton];
     
     // clear history
-    
-    // TBD : put the history slider in it's starting position (to the right)
-    // TBD : make/move to a history update function?
     self.history = nil;
     
     // set the slider to the right side, and disable it
-    // we need to do a trick here, and set the value to '1', even though it should be '0'
+    // we need to do a trick here, and set the value to '1', even though it should be '0', but with both min & max value set to 0, the thumb moves to the left, and I prefer to have it on the right (back in time means dragging the slider to the left)
     self.historySlider.maximumValue = 1;
     self.historySlider.value = 1;
     self.historySlider.enabled = NO;
     
-    // let's set the history index to 0 and hidden, because of the above trick
+    // let's set the history index to 0 but also hidden, because of the above trick
     self.historyIndex = 0;
     self.historyIndexLabel.hidden = TRUE;
     
     // now update the UI - the call to the updateUI will create a new game the first time the getter is called!
-    [self updateUI]; //-> moved to 'setGame' method
+    [self updateUI];
 }
 
 - (IBAction)gameModeChanged:(UISegmentedControl *)sender

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E322995016D809AC00E6C433 /* Butterfly.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = E322994F16D809AC00E6C433 /* Butterfly.jpeg */; };
 		E32D8EB816C9385700E675BC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E32D8EB716C9385700E675BC /* UIKit.framework */; };
 		E32D8EBA16C9385800E675BC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E32D8EB916C9385800E675BC /* Foundation.framework */; };
 		E32D8EBC16C9385800E675BC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E32D8EBB16C9385800E675BC /* CoreGraphics.framework */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E322994F16D809AC00E6C433 /* Butterfly.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Butterfly.jpeg; sourceTree = "<group>"; };
 		E32D8EB416C9385700E675BC /* Matchismo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Matchismo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E32D8EB716C9385700E675BC /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		E32D8EB916C9385800E675BC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -126,6 +128,7 @@
 		E32D8EBE16C9385800E675BC /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				E322994F16D809AC00E6C433 /* Butterfly.jpeg */,
 				E32D8EC616C9385800E675BC /* CardGameAppDelegate.h */,
 				E32D8EC716C9385800E675BC /* CardGameAppDelegate.m */,
 				E32D8EBF16C9385800E675BC /* Matchismo-Info.plist */,
@@ -213,6 +216,7 @@
 				E32D8ECC16C9385800E675BC /* Default@2x.png in Resources */,
 				E32D8ECE16C9385800E675BC /* Default-568h@2x.png in Resources */,
 				E32D8ED116C9385800E675BC /* MainStoryboard.storyboard in Resources */,
+				E322995016D809AC00E6C433 /* Butterfly.jpeg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
