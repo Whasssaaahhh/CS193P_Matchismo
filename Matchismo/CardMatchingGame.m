@@ -91,7 +91,7 @@
     self.status = nil;
 }
 
-#pragma mark - xxx
+#pragma mark - Helper methods
 
 - (Card *)cardAtIndex:(NSUInteger)index
 {
@@ -100,14 +100,69 @@
 }
 
 #define FLIP_COST 1
-#define MISMATCH_PENALTY 2
-#define MATCH_BONUS 4
+#define MISMATCH_PENALTY -2
+#define SUIT_MATCH_BONUS 4
+#define RANK_MATCH_BONUS 8
+
+- (NSUInteger)calculateScoreFromMatchResults:(NSArray *)results
+{
+    NSUInteger score = 0;
+    NSMutableArray *textForStatus = [[NSMutableArray alloc] init];
+    
+    if(results.count != 0)
+    {
+        self.status = @"";
+        
+        // there was a match -> calculate score & update status
+        for (MatchDescription *description in results)
+        {
+            NSUInteger lastScore = 0;
+            
+            switch (description.matchType)
+            {
+                case kMATCH_TYPE_RANK:
+                    lastScore = RANK_MATCH_BONUS * description.nbrOfCardsInMatch;
+                    NSLog(@"rank %@ was matched %d times, you scored %d points", description.matchedItem, description.nbrOfCardsInMatch, lastScore);
+                    [textForStatus addObject:[NSString stringWithFormat:@"%dx '%@' (+%d)", description.nbrOfCardsInMatch, description.matchedItem, lastScore]];
+                    break;
+                    
+                case kMATCH_TYPE_SUIT:
+                    lastScore = SUIT_MATCH_BONUS * description.nbrOfCardsInMatch;
+                    NSLog(@"suit %@ was matched %d times, you scored %d points", description.matchedItem, description.nbrOfCardsInMatch, lastScore);
+                    [textForStatus addObject:[NSString stringWithFormat:@"%dx '%@' (+%d)", description.nbrOfCardsInMatch, description.matchedItem, lastScore]];                 
+                    break;
+                    
+                default:
+                    NSLog(@"unsupported MATCH_TYPE?");
+                    break;
+            }
+            
+            // construct status message
+            self.status = @"Match : ";
+            self.status = [self.status stringByAppendingString:[textForStatus componentsJoinedByString:@", "]];
+            score += lastScore;
+        }
+    }
+    else
+    {
+        score += MISMATCH_PENALTY;
+        self.status = [NSString stringWithFormat:@"Mismatch, score %d", MISMATCH_PENALTY];
+        NSLog(@"no matches found, penalty : %d", MISMATCH_PENALTY);
+    }
+    
+    NSLog(@"Total points gained with last flip : %d", score);
+    
+    return score;
+}
 
 - (void)flipCardAtIndex:(NSUInteger)index
 {
     NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
     
     // this is the guts of our class, it is where the game logic lives
+    
+    // keep track of the score result of this flip
+    NSUInteger currentFlipScore = 0;
     
     // grab the last card
     Card *lastCard = [self cardAtIndex:index];
@@ -127,8 +182,7 @@
             // create an array of the other cards that are faced up
             NSMutableArray *faceUpCards = [[NSMutableArray alloc] init];
             
-            NSLog(@"searching for playable, faceUpCards in %d cards", self.cards.count);
-            
+            // search for playable, faceUpCards
             for (Card *aCard in self.cards)
             {
                 if (aCard.isFaceUp && !aCard.isUnplayable)
@@ -146,10 +200,18 @@
                 // note that the Class method 'matchMultiplePlayingCards' will not only return a score, but also set the 'matched' @property of the card,
                 // so we can 'disable' the card here
                 // int matchScore = [card match:faceUpCards];
-                int matchScore = [PlayingCard matchMultiplePlayingCards:faceUpCards];
-                if (matchScore)
+                // int matchScore = [PlayingCard matchMultiplePlayingCards_v2:faceUpCards];
+                MatchResults *matchResults = [[MatchResults alloc] init];
+                matchResults = [PlayingCard matchMultiplePlayingCards:faceUpCards];
+                
+                // calculate score for this match & add it to the total score
+                currentFlipScore = [self calculateScoreFromMatchResults:matchResults.results];
+                self.score += currentFlipScore;
+                
+                if (matchResults.results.count != 0)
                 {
-                    NSLog(@"matches found, score = %d!", matchScore);
+                    NSLog(@"matches found, you gained %d points!", currentFlipScore);
+                    
                     // go through ALL cards, disable the matched cards, and turn the non-matched cards
                     for (Card *aCard in self.cards)
                     {
@@ -162,6 +224,7 @@
                 else
                 {
                     NSLog(@"no matches found!");
+                    
                     // go through ALL cards, turn back only playable cards
                     for (Card *aCard in self.cards)
                     {
@@ -175,97 +238,24 @@
                     lastCard.faceUp = YES;
             }
 
-            
-            // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
-//            for (Card *otherCard in self.cards)
-//            {
-//                if (otherCard.isFaceUp && !otherCard.isUnplayable)
-//                {
-//                    // if we find it, check to see if it matches using the Card's match: method
-//                    // 'match:' returns how good a match was (zero if not a match)
-//                    // 'match:' takes an NSArray of other cards in case a subclass can match multiple cards. Since our matching game is only a 2-card matching game, we just create a single element array using @[ ] array creation syntac (new since iOS 6)
-//                    int matchScore = [card match:@[otherCard]];
-//                    if (matchScore)
-//                    {
-//                        // if it's a match, both cards become unplayable, and we update the score
-//                        NSLog(@"status : Matched %@ and %@ for %d points", card.contents, otherCard.contents, matchScore * MATCH_BONUS);
-//                        otherCard.unplayable = YES;
-//                        card.unplayable = YES;
-//                        self.score += matchScore * MATCH_BONUS;
-//                    }
-//                    else
-//                    {
-//                        NSLog(@"status : %@ and %@ don't match! %d point penalty", card.contents, otherCard.contents, matchScore * MISMATCH_PENALTY);
-//                        otherCard.faceUp = NO;
-//                        self.score -= MISMATCH_PENALTY;
-//                    }
-//                    break;  // break out because match was found
-//                }
-//            }
-            // let's always charge a cost to flip
-            // TBD : if the player leaves one or more card(s) faced up, count extra FLIP_COST here (or even x2) !!!
-            self.score -= FLIP_COST;
+            // let's always charge a cost to flip (TBD : we could also charge extra for all cards that the user leaves facing up in a 3 or more card game, but let's KISS for now)
+            self.score -= FLIP_COST;          
         }
         
-        if (lastCard.isFaceUp)
-            NSLog(@"status : Flipped up : %@", lastCard.contents);
-        else
-            NSLog(@"status : No cards flipped");
+        if (currentFlipScore == 0)
+        {
+            if (lastCard.isFaceUp)
+            {
+                self.status = [NSString stringWithFormat:@"flipped up : %@", lastCard.contents];
+                NSLog(@"status : Flipped up : %@", lastCard.contents);
+            }
+            else
+            {
+                self.status = @"";
+                NSLog(@"status : No cards flipped");
+            }
+        }
     }
 }
-
-//- (void)flipCardAtIndex:(NSUInteger)index
-//{
-//    NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
-//    
-//    // this is the guts of our class, it is where the game logic lives
-//    
-//    // grab the card
-//    Card *card = [self cardAtIndex:index];
-//    
-//    // make sure it's playable
-//    if (!card.isUnplayable)
-//    {
-//        if (!card.isFaceUp)
-//        {
-//            // see if flipping this card (to face up) creates a match. If we are flipping the card up, we need to 'play the game' here
-//            for (Card *otherCard in self.cards)
-//            {
-//                if (otherCard.isFaceUp && !otherCard.isUnplayable)
-//                {
-//                    // if we find it, check to see if it matches using the Card's match: method
-//                    // 'match:' returns how good a match was (zero if not a match)
-//                    // 'match:' takes an NSArray of other cards in case a subclass can match multiple cards. Since our matching game is only a 2-card matching game, we just create a single element array using @[ ] array creation syntac (new since iOS 6)
-//                    int matchScore = [card match:@[otherCard]];
-//                    if (matchScore)
-//                    {
-//                        // if it's a match, both cards become unplayable, and we update the score
-//                        NSLog(@"status : Matched %@ and %@ for %d points", card.contents, otherCard.contents, matchScore * MATCH_BONUS);
-//                        otherCard.unplayable = YES;
-//                        card.unplayable = YES;
-//                        self.score += matchScore * MATCH_BONUS;
-//                    }
-//                    else
-//                    {
-//                        NSLog(@"status : %@ and %@ don't match! %d point penalty", card.contents, otherCard.contents, matchScore * MISMATCH_PENALTY);
-//                        otherCard.faceUp = NO;
-//                        self.score -= MISMATCH_PENALTY;
-//                    }
-//                    break;  // break out because match was found
-//                }
-//            }
-//            // let's always charge a cost to flip
-//            self.score -= FLIP_COST;
-//        }
-//        
-//        // the card is playable, so we can flip it
-//        card.faceUp = !card.isFaceUp;
-//        
-//        if (card.isFaceUp)
-//            NSLog(@"status : Flipped up : %@", card.contents);
-//        else
-//            NSLog(@"status : No cards flipped");
-//    }
-//}
 
 @end

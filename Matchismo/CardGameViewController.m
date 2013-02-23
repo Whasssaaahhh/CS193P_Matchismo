@@ -146,6 +146,9 @@
 
     // update the history index label
     self.historyIndexLabel.text = [NSString stringWithFormat:@"%g", self.historySlider.value];
+    
+    // update the status label
+    self.statusLabel.text = self.game.status;
 }
 
 #pragma mark - IBAction methods

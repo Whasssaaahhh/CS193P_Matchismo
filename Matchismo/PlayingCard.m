@@ -121,24 +121,15 @@
     return score;
 }
 
-// class method that matches n cards with each other, by running through all available suits & ranks
-// note that in case of for example 4 cards, there can be a match between 2 hearts, as well as 2 spades
-// many choices can be made here on how to determine the score
-+ (int)matchMultiplePlayingCards:(NSArray *)cards
++ (MatchResults *)matchMultiplePlayingCards:(NSArray *)cards
 {
     NSLog(@"-- %@->%@", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
     
-    int score = 0;
-    
-//    NSLog(@"matching %d cards", cards.count);
-    
-    int suitMatches = 0;
+    MatchResults *matchResults = [[MatchResults alloc] init];
     
     for (NSString *suit in [PlayingCard validSuits])
     {
         int currentSuitMatches = 0;
-//
-        NSLog(@"matching suit %@", suit);
         
         // now check all cards against the suit
         for (PlayingCard *aCard in cards)
@@ -152,31 +143,29 @@
         {
             NSLog(@"suit %@ was matched %d times", suit, currentSuitMatches);
             
+            // describe the match & add it the the results object
+            MatchDescription *description = [[MatchDescription alloc] init];
+            description.matchType = kMATCH_TYPE_SUIT;
+            description.matchedItem = suit;
+            description.nbrOfCardsInMatch = currentSuitMatches;
+            [matchResults addMatchResult:description];
+            
+            // mark the matched cards so the controller can handle the rest
             for (PlayingCard *aPlayingCard in cards)
             {
                 if([aPlayingCard.suit isEqualToString:suit])
                     aPlayingCard.matched = YES;
             }
-            
-            // keep track of the suitMatches
-            suitMatches += currentSuitMatches;
         }
     }
-
-    // TBD : find out some cool score calculation
-    score += suitMatches;
     
-//    NSLog(@"found %d suit matches", suitMatches);
-   
-    int rankMatches = 0;
-
     // note the '<=', you want to 'include' the maxRank too!
     // note also that we start from rank '1' as '0' is considered an invalid rank
     for (NSUInteger rank = 1; rank <= [PlayingCard maxRank]; rank++)   // TBD : add 'minRank' method instead of starting from '1' ??
     {
         int currentRankMatches = 0;
         
-//        NSLog(@"matching rank %d", rank);
+        //        NSLog(@"matching rank %d", rank);
         
         // now check all cards against the suit
         for (PlayingCard *aCard in cards)
@@ -190,26 +179,23 @@
         {
             NSLog(@"rank %d was matched %d times", rank, currentRankMatches);
             
+            // describe the match & add it the the results object            
+            MatchDescription *description = [[MatchDescription alloc] init];
+            description.matchType = kMATCH_TYPE_RANK;
+            description.matchedItem = [NSString stringWithFormat:@"%D",rank];
+            description.nbrOfCardsInMatch = currentRankMatches;
+            [matchResults addMatchResult:description];
+            
+            // mark the matched cards so the controller can handle the rest
             for (PlayingCard *aPlayingCard in cards)
             {
                 if(aPlayingCard.rank == rank)
                     aPlayingCard.matched = YES;
             }
-            
-            // keep track of the suitMatches
-            rankMatches += currentRankMatches;
         }
-    }    
+    }
     
-//
-    NSLog(@"found %d rank matches", rankMatches);
-
-    // TBD : find out some cool score calculation
-    score += rankMatches;
-    
-    // TBD : calculate score from the matches
-    return score;
+    return matchResults;
 }
-
 
 @end

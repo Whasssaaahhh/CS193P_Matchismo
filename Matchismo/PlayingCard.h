@@ -7,6 +7,7 @@
 //
 
 #import "Card.h"
+#import "MatchResults.h"
 
 @interface PlayingCard : Card
 
@@ -16,5 +17,8 @@
 // class methods, don't need an instance to operate
 + (NSArray *)validSuits;
 + (NSUInteger)maxRank;
-+ (int)matchMultiplePlayingCards:(NSArray *)cards;
+//+ (int)matchMultiplePlayingCards:(NSArray *)cards;
+
++ (MatchResults *)matchMultiplePlayingCards:(NSArray *)cards;
+
 @end
